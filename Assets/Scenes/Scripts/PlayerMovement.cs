@@ -29,6 +29,7 @@ public class PlayerMovement : MonoBehaviour
     private float lastMovement;
     public float jumpStrength;
     public float jumpCancelForce;
+    private bool isJumping;
     public bool canCancelJump;
 
     // Dash
@@ -55,6 +56,7 @@ public class PlayerMovement : MonoBehaviour
         moveDirection = Vector3.zero;
         moveable = true;
         grounded = true;
+        isJumping = false;
         dashing = false;
         dashJumping = false;
         canCancelJump = false;
@@ -93,6 +95,11 @@ public class PlayerMovement : MonoBehaviour
     void HandleGroundedState()
     {
         grounded = body.isGrounded;
+
+        if (grounded && isJumping)
+        {
+            isJumping = false;
+        }
 
         if (grounded && dashJumping)
         {
@@ -151,10 +158,11 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleJumpInput()
     {
-        if (grounded && (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.JoystickButton0)))
+        if (grounded && !dashing && (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.JoystickButton0)))
         {
             velocity.y = Mathf.Sqrt(2 * jumpStrength * gravity);
             canCancelJump = true;
+            isJumping = true;
         }
 
         if (canCancelJump && velocity.y < 0)
@@ -170,7 +178,7 @@ public class PlayerMovement : MonoBehaviour
             isWallJumping = false;
         }
 
-        if (dashing)
+        if (dashing && !isJumping)
         {
             if (grounded && (Input.GetKeyDown(KeyCode.X) || Input.GetKeyDown(KeyCode.JoystickButton0)))
             {
@@ -194,7 +202,7 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleDash()
     {
-        if (grounded && !dashing && !dashJumping)
+        if (grounded && !dashing && !dashJumping && !isJumping)
         {
             if ((Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.JoystickButton5))
                 && Time.time > lastDashTime + dashCooldown && movement != 0)
